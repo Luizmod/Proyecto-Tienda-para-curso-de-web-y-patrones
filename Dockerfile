@@ -22,7 +22,7 @@ USER spring:spring
 
 # Copiamos el JAR desde la etapa de compilación
 # El nombre 'app.jar' es un estándar para facilitar el despliegue
-COPY --from=build /app/target/app.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 # Exponemos el puerto definido en tu application.properties (80)
 EXPOSE 80
