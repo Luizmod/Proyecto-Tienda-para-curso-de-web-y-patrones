@@ -2,10 +2,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
-    <head th:replace="~{general/fragmentos :: head}"/>
+
+    <!-- Reemplaza este <head> por el fragmento "head" (CSS, meta, título, etc.) -->
+    <head th:replace="~{general/fragmentos :: head}"></head>
+
     <body>
-        <header th:replace="~{general/fragmentos :: header}"/>
-        
-        <footer th:replace="~{general/fragmentos :: footer}"/>
+        <!-- Encabezado/menú común a todas las páginas -->
+        <header th:replace="~{general/fragmentos :: header}"></header>
+
+        <!-- Aquí va el contenido propio de esta página -->
+        <main>
+            <h1>Bienvenido</h1>
+        </main>
+
+        <!-- Pie de página común -->
+        <footer th:replace="~{general/fragmentos :: footer}"></footer>
     </body>
 </html>
