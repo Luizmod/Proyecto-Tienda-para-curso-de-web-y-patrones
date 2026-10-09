@@ -1,60 +1,58 @@
-package com.tienda;
+    package com.tienda;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
+    import java.util.Locale;
+    import org.springframework.context.MessageSource;
+    import org.springframework.context.annotation.Bean;
+    import org.springframework.context.annotation.Configuration;
+    import org.springframework.context.support.ResourceBundleMessageSource;
+    import org.springframework.web.servlet.LocaleResolver;
+    import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+    import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+    import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+    import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+    import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+    import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
+    import org.thymeleaf.templatemode.TemplateMode;
 
-@Configuration
-public class StorageConfig {
+    @Configuration
+    public class ProjectConfig implements WebMvcConfigurer {
 
-    @Value("${firebase.json.path}")
-    private String jsonPath;
-
-    @Value("${firebase.json.file}")
-    private String jsonFile;
-
-    // NUEVO: ruta externa opcional (Render Secret File, variable de entorno, etc.)
-    @Value("${firebase.credentials-path:}")
-    private String credentialsPath;
-
-    @Bean
-    public Storage storage() throws IOException {
-        InputStream inputStream = openCredentials();
-        GoogleCredentials credentials = GoogleCredentials.fromStream(inputStream);
-        return StorageOptions.newBuilder().setCredentials(credentials).build().getService();
-    }
-
-    private InputStream openCredentials() throws IOException {
-        // 1) Si hay ruta externa configurada, úsala (producción / Render)
-        if (credentialsPath != null && !credentialsPath.isBlank()) {
-            File file = new File(credentialsPath);
-            if (file.exists()) {
-                System.out.println(">>> Firebase: cargando credenciales desde " + credentialsPath);
-                return new FileInputStream(file);
-            } else {
-                System.out.println(">>> Firebase: ruta configurada no existe: " + credentialsPath);
-            }
+        @Override
+        public void addViewControllers(ViewControllerRegistry registry) {
+            registry.addViewController("/").setViewName("index");
+            registry.addViewController("/ejemplo2").setViewName("ejemplo2");
+            registry.addViewController("/multimedia").setViewName("multimedia");
+            registry.addViewController("/iframes").setViewName("iframes");
+            registry.addViewController("/login").setViewName("login");
+            registry.addViewController("/registro/nuevo").setViewName("/registro/nuevo");
         }
 
-        // 2) Fallback: classpath (desarrollo local)
-        String resourcePath = jsonPath + File.separator + jsonFile;
-        ClassPathResource resource = new ClassPathResource(resourcePath);
-        if (resource.exists()) {
-            System.out.println(">>> Firebase: cargando credenciales desde classpath: " + resourcePath);
-            return resource.getInputStream();
+        @Bean
+        public LocaleResolver localeResolver() {
+            var slr = new SessionLocaleResolver();
+            slr.setDefaultLocale(Locale.getDefault());
+            slr.setLocaleAttributeName("session.current.locale");
+            slr.setTimeZoneAttributeName("session.current.timezone");
+            return slr;
         }
 
-        throw new IllegalStateException(
-            "No se encontraron credenciales de Firebase. " +
-            "Define FIREBASE_CREDENTIALS_PATH o coloca el JSON en el classpath."
-        );
+        @Bean
+        public LocaleChangeInterceptor localeChangeInterceptor() {
+            var lci = new LocaleChangeInterceptor();
+            lci.setParamName("lang");
+            return lci;
+        }
+
+        @Override
+        public void addInterceptors(InterceptorRegistry registro) {
+            registro.addInterceptor(localeChangeInterceptor());
+        }
+
+        @Bean("messageSource")
+        public MessageSource messageSource() {
+            ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+            messageSource.setBasename("messages");
+            messageSource.setDefaultEncoding("UTF-8");
+            return messageSource;
+        }
     }
-}
